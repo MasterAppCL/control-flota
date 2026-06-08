@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f6e56">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Control de Flota">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Control de Flota</title>
+<style>
+:root {
+  --bg: #f4f3ef;
+  --surface: #ffffff;
+  --surface2: #f0efe9;
+  --border: #e0dfd8;
+  --border2: #c8c7be;
+  --text: #1a1a18;
+  --text2: #5a5a54;
+  --text3: #8a8a82;
+  --teal: #0f6e56;
+  --teal-lt: #e1f5ee;
+  --teal-md: #1d9e75;
+  --blue: #185fa5;
+  --blue-lt: #e6f1fb;
+  --amber: #854f0b;
+  --amber-lt: #faeeda;
+  --red: #a32d2d;
+  --red-lt: #fcebeb;
+  --green-lt: #eaf3de;
+  --green: #3b6d11;
+  --gray-lt: #f1efe8;
+  --gray: #5f5e5a;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; }
+/* SIDEBAR */
+.layout { display: flex; min-height: 100vh; }
+.sidebar { width: 220px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+.sidebar-brand { padding: 1.25rem 1rem 1rem; border-bottom: 1px solid var(--border); }
+.brand-name { font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+.brand-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.nav { padding: .75rem .5rem; flex: 1; }
+.nav-section { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .8px; padding: .5rem .5rem .25rem; }
+.nav-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: var(--radius-sm); cursor: pointer; color: var(--text2); font-size: 13px; transition: all .15s; margin-bottom: 2px; border: none; background: none; width: 100%; text-align: left; }
+.nav-item:hover { background: var(--surface2); color: var(--text); }
+.nav-item.active { background: var(--teal-lt); color: var(--teal); font-weight: 600; }
+.nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+.sidebar-footer { padding: .75rem 1rem; border-top: 1px solid var(--border); font-size: 11px; color: var(--text3); }
+/* MAIN */
+.main { flex: 1; overflow: auto; }
+.topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: .85rem 1.5rem; display: flex; align-items: center; justify-content: space-between; }
+.page-title { font-size: 16px; font-weight: 600; }
+.page-sub { font-size: 12px; color: var(--text3); }
+.content { padding: 1.5rem; }
+/* PANELS */
+.panel { display: none; }
+.panel.active { display: block; }
+/* KPI GRID */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 1.5rem; }
+.kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.1rem; }
+.kpi-label { font-size: 11px; color: var(--text3); font-weight: 500; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 6px; }
+.kpi-value { font-size: 26px; font-weight: 700; color: var(--text); line-height: 1; }
+.kpi-sub { font-size: 11px; color: var(--text3); margin-top: 5px; }
+/* CARDS */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem 1.25rem; margin-bottom: 12px; box-shadow: var(--shadow); }
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.card-title { font-size: 14px; font-weight: 600; }
+/* BADGES */
+.badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
+.badge-green { background: var(--green-lt); color: var(--green); }
+.badge-amber { background: var(--amber-lt); color: var(--amber); }
+.badge-red { background: var(--red-lt); color: var(--red); }
+.badge-blue { background: var(--blue-lt); color: var(--blue); }
+.badge-gray { background: var(--gray-lt); color: var(--gray); }
+.badge-teal { background: var(--teal-lt); color: var(--teal); }
+/* BUTTONS */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid var(--border2); background: var(--surface); color: var(--text); transition: all .15s; }
+.btn:hover { background: var(--surface2); }
+.btn-primary { background: var(--teal); color: #fff; border-color: var(--teal); }
+.btn-primary:hover { background: #0a5240; }
+.btn-danger { background: var(--red); color: #fff; border-color: var(--red); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+/* TABLE */
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; padding: 8px 10px; font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .4px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; color: var(--text); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--surface2); }
+/* PROGRESS */
+.prog { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 6px; }
+.prog-fill { height: 100%; border-radius: 3px; }
+/* BAR CHART */
+.bar-chart { display: flex; flex-direction: column; gap: 9px; }
+.bar-row { display: flex; align-items: center; gap: 10px; }
+.bar-lbl { width: 100px; font-size: 12px; color: var(--text2); flex-shrink: 0; }
+.bar-track { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; transition: width .6s ease; }
+.bar-val { width: 50px; text-align: right; font-size: 12px; font-weight: 600; color: var(--text); }
+/* TIMELINE */
+.timeline { padding-left: 20px; position: relative; }
+.timeline::before { content: ''; position: absolute; left: 7px; top: 4px; bottom: 4px; width: 1.5px; background: var(--border); }
+.tl-item { position: relative; margin-bottom: 16px; }
+.tl-item:last-child { margin-bottom: 0; }
+.tl-dot { position: absolute; left: -17px; top: 4px; width: 11px; height: 11px; border-radius: 50%; border: 2px solid; }
+.tl-time { font-size: 11px; color: var(--text3); }
+.tl-event { font-size: 13px; font-weight: 500; color: var(--text); margin-top: 1px; }
+.tl-detail { font-size: 12px; color: var(--text2); }
+/* ALERT ITEMS */
+.alert-item { display: flex; align-items: flex-start; gap: 12px; padding: .9rem 1rem; border-radius: var(--radius-sm); margin-bottom: 8px; border: 1px solid; }
+.alert-red { background: var(--red-lt); border-color: #f09595; }
+.alert-amber { background: var(--amber-lt); border-color: #fac775; }
+.alert-blue { background: var(--blue-lt); border-color: #b5d4f4; }
+.alert-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.alert-red .alert-icon { color: var(--red); }
+.alert-amber .alert-icon { color: var(--amber); }
+.alert-blue .alert-icon { color: var(--blue); }
+.alert-title { font-size: 13px; font-weight: 600; }
+.alert-desc { font-size: 12px; color: var(--text2); margin-top: 2px; }
+/* MODAL */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 1000; align-items: center; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: var(--surface); border-radius: var(--radius); padding: 1.5rem; width: 100%; max-width: 540px; box-shadow: 0 8px 32px rgba(0,0,0,.18); }
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+.modal-title { font-size: 16px; font-weight: 700; }
+.modal-close { background: none; border: none; cursor: pointer; font-size: 20px; color: var(--text3); line-height: 1; padding: 2px 6px; border-radius: 4px; }
+.modal-close:hover { background: var(--surface2); }
+/* FORM */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+.form-group.full { grid-column: 1 / -1; }
+label { font-size: 12px; font-weight: 500; color: var(--text2); }
+input, select, textarea { padding: 8px 10px; border: 1px solid var(--border2); border-radius: var(--radius-sm); font-size: 13px; color: var(--text); background: var(--surface); font-family: inherit; transition: border-color .15s; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--teal); }
+textarea { resize: vertical; min-height: 70px; }
+.form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 1.25rem; }
+/* ROUTE CARD */
+.route-card { display: flex; align-items: flex-start; gap: 12px; }
+.route-icon { width: 42px; height: 42px; border-radius: var(--radius-sm); background: var(--blue-lt); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 20px; }
+.route-info { flex: 1; min-width: 0; }
+.route-name { font-size: 14px; font-weight: 600; }
+.route-meta { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.route-right { text-align: right; flex-shrink: 0; }
+/* AVATAR */
+.avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+/* GRID 2 COL */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+/* CHIP */
+.chip-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1rem; }
+.chip { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border2); background: var(--surface); color: var(--text2); font-size: 12px; cursor: pointer; transition: all .15s; }
+.chip:hover, .chip.active { background: var(--teal-lt); border-color: var(--teal-md); color: var(--teal); }
+/* TOAST */
+.toast { position: fixed; bottom: 24px; right: 24px; background: var(--text); color: #fff; padding: 10px 18px; border-radius: var(--radius-sm); font-size: 13px; z-index: 2000; opacity: 0; transform: translateY(10px); transition: all .3s; pointer-events: none; }
+.toast.show { opacity: 1; transform: translateY(0); }
+/* STATUS DOT */
+.status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+.dot-green { background: var(--teal-md); }
+.dot-amber { background: #ef9f27; }
+.dot-red { background: #e24b4a; }
+.dot-gray { background: #888; }
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+/* PRINT */
+@media print {
+  .sidebar, .topbar .btn, .modal-overlay { display: none !important; }
+  .main { overflow: visible; }
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+      <span style="font-size:22px">🚛</span>
+      <div class="brand-name">Control de Flota</div>
+    </div>
+    <div class="brand-sub"></div>
+  </div>
+  <nav class="nav">
+    <div class="nav-section">Operaciones</div>
+    <button class="nav-item active" onclick="showPanel('dashboard',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </button>
+    <button class="nav-item" onclick="showPanel('rutas',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+      Rutas y viajes
+    </button>
+    <button class="nav-item" onclick="showPanel('camiones',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      Camiones
+    </button>
+    <div class="nav-section">Equipo</div>
+    <button class="nav-item" onclick="showPanel('conductores',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Conductores
+    </button>
+    <div class="nav-section">Recursos</div>
+    <button class="nav-item" onclick="showPanel('mantenimiento',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      Mantenimiento
+    </button>
+    <button class="nav-item" onclick="showPanel('combustible',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 22V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/><path d="M17 11h2a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2"/><line x1="3" y1="22" x2="19" y2="22"/><line x1="9" y1="6" x2="9" y2="10"/></svg>
+      Combustible
+    </button>
+    <button class="nav-item" onclick="showPanel('alertas',this)" id="nav-alertas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      Alertas <span class="badge badge-red" style="margin-left:auto;font-size:10px">5</span>
+    </button>
+  </nav>
+  <div class="sidebar-footer">
+    v1.0 · Jun 2026
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title" id="page-title">Dashboard</div>
+      <div class="page-sub" id="page-sub">Vista general de la flota · 06 jun 2026</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-sm" onclick="openModal('modal-viaje')">+ Nuevo viaje</button>
+      <button class="btn btn-sm btn-primary" onclick="exportarCSV()">⬇ Exportar CSV</button>
+    </div>
+  </div>
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Viajes activos</div>
+          <div class="kpi-value" id="kpi-activos">3</div>
+          <div class="kpi-sub">en ruta ahora mismo</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Km hoy</div>
+          <div class="kpi-value">1.248</div>
+          <div class="kpi-sub">jun 06 · 2026</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Disponibles</div>
+          <div class="kpi-value">4</div>
+          <div class="kpi-sub">de 14 en flota</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Alertas</div>
+          <div class="kpi-value" style="color:var(--red)">5</div>
+          <div class="kpi-sub">requieren atención</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Viajes activos ahora</span><span class="badge badge-blue">3</span></div>
+          <div id="dash-rutas-activas"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Eficiencia combustible (km/L)</span></div>
+          <div class="bar-chart" id="dash-eficiencia"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Rendimiento conductores</span><span style="font-size:11px;color:var(--text3)">% a tiempo · jun</span></div>
+          <div class="bar-chart" id="dash-rendimiento"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Disponibilidad flota</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+            <div style="text-align:center;padding:.9rem;background:var(--green-lt);border-radius:var(--radius-sm)"><div style="font-size:24px;font-weight:700;color:var(--green)">4</div><div style="font-size:11px;color:var(--green);margin-top:2px">Disponibles</div></div>
+            <div style="text-align:center;padding:.9rem;background:var(--blue-lt);border-radius:var(--radius-sm)"><div style="font-size:24px;font-weight:700;color:var(--blue)">3</div><div style="font-size:11px;color:var(--blue);margin-top:2px">En ruta</div></div>
+            <div style="text-align:center;padding:.9rem;background:var(--amber-lt);border-radius:var(--radius-sm)"><div style="font-size:24px;font-weight:700;color:var(--amber)">2</div><div style="font-size:11px;color:var(--amber);margin-top:2px">Mantención</div></div>
+            <div style="text-align:center;padding:.9rem;background:var(--red-lt);border-radius:var(--radius-sm)"><div style="font-size:24px;font-weight:700;color:var(--red)">5</div><div style="font-size:11px;color:var(--red);margin-top:2px">Alertas</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <div class="card-header"><span class="card-title">Eventos recientes</span></div>
+        <div class="timeline" id="dash-timeline"></div>
+      </div>
+    </div>
+
+    <!-- RUTAS -->
+    <div class="panel" id="panel-rutas">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <div>
+          <div style="font-weight:600;font-size:15px">Viajes activos</div>
+          <div style="font-size:12px;color:var(--text3)">3 en ruta · 7 completados hoy</div>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('modal-viaje')">+ Nuevo viaje</button>
+      </div>
+      <div id="rutas-activas-list"></div>
+      <div style="font-weight:600;margin:1.25rem 0 .75rem;font-size:14px">Historial del día</div>
+      <div class="card">
+        <div class="tbl-wrap">
+          <table id="tabla-viajes"></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CAMIONES -->
+    <div class="panel" id="panel-camiones">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <div><div style="font-weight:600;font-size:15px">Flota de camiones</div><div style="font-size:12px;color:var(--text3)" id="flota-sub">14 unidades registradas</div></div>
+        <button class="btn btn-primary" onclick="openModal('modal-camion')">+ Agregar camión</button>
+      </div>
+      <div class="chip-row">
+        <span class="chip active" onclick="filtrarFlota('todos',this)">Todos</span>
+        <span class="chip" onclick="filtrarFlota('En ruta',this)">En ruta</span>
+        <span class="chip" onclick="filtrarFlota('Disponible',this)">Disponibles</span>
+        <span class="chip" onclick="filtrarFlota('Mantención',this)">En mantención</span>
+      </div>
+      <div class="card">
+        <div class="tbl-wrap">
+          <table id="tabla-camiones"></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONDUCTORES -->
+    <div class="panel" id="panel-conductores">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <div><div style="font-weight:600;font-size:15px">Conductores</div><div style="font-size:12px;color:var(--text3)">5 registrados</div></div>
+        <button class="btn btn-primary" onclick="openModal('modal-conductor')">+ Agregar conductor</button>
+      </div>
+      <div id="conductores-list"></div>
+      <div class="card" style="margin-top:12px">
+        <div class="card-header"><span class="card-title">Rendimiento mensual · % entregas a tiempo</span></div>
+        <div class="bar-chart" id="conductores-bar"></div>
+      </div>
+    </div>
+
+    <!-- MANTENIMIENTO -->
+    <div class="panel" id="panel-mantenimiento">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <div><div style="font-weight:600;font-size:15px">Programa de mantenimiento</div></div>
+        <button class="btn btn-primary" onclick="openModal('modal-mant')">+ Registrar</button>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi-card"><div class="kpi-label">En taller</div><div class="kpi-value">2</div></div>
+        <div class="kpi-card"><div class="kpi-label">Próximas 30 días</div><div class="kpi-value">3</div></div>
+        <div class="kpi-card"><div class="kpi-label">Costo mes</div><div class="kpi-value" style="font-size:20px">$4,2M</div></div>
+        <div class="kpi-card"><div class="kpi-label">Completadas año</div><div class="kpi-value">18</div></div>
+      </div>
+      <div class="card">
+        <div class="tbl-wrap">
+          <table id="tabla-mant"></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMBUSTIBLE -->
+    <div class="panel" id="panel-combustible">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <div><div style="font-weight:600;font-size:15px">Control de combustible</div></div>
+        <button class="btn btn-primary" onclick="openModal('modal-comb')">+ Registrar carga</button>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi-card"><div class="kpi-label">Consumo mes</div><div class="kpi-value" style="font-size:20px">3.840 L</div></div>
+        <div class="kpi-card"><div class="kpi-label">Gasto mes</div><div class="kpi-value" style="font-size:20px">$3,38M</div></div>
+        <div class="kpi-card"><div class="kpi-label">Eficiencia</div><div class="kpi-value" style="font-size:20px">3,1 km/L</div></div>
+        <div class="kpi-card"><div class="kpi-label">Precio diesel</div><div class="kpi-value" style="font-size:20px">$880/L</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Eficiencia por camión (km/L)</span></div>
+          <div class="bar-chart" id="comb-eficiencia"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Últimas cargas registradas</span></div>
+          <div class="tbl-wrap"><table id="tabla-cargas"></table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALERTAS -->
+    <div class="panel" id="panel-alertas">
+      <div style="font-weight:600;font-size:15px;margin-bottom:1rem">Alertas y vencimientos activos <span class="badge badge-red" style="font-size:12px">5</span></div>
+      <div id="alertas-list"></div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- MODALES -->
+<div class="modal-overlay" id="modal-viaje">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Registrar nuevo viaje</span>
+      <button class="modal-close" onclick="closeModal('modal-viaje')">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label>Camión (patente)</label>
+        <select id="v-camion"><option>PPO-432</option><option>MNB-204</option><option>HHT-902</option><option>BNQ-344</option></select></div>
+      <div class="form-group"><label>Conductor</label>
+        <select id="v-conductor"><option>Juan Morales</option><option>Carla Vega</option><option>Rodrigo Fuentes</option><option>Pedro Soto</option></select></div>
+      <div class="form-group"><label>Origen</label><input type="text" id="v-origen" placeholder="Ej: Quilpué"></div>
+      <div class="form-group"><label>Destino</label><input type="text" id="v-destino" placeholder="Ej: Viña del Mar CD"></div>
+      <div class="form-group"><label>Hora de salida</label><input type="time" id="v-hora" value="11:30"></div>
+      <div class="form-group"><label>Carga (toneladas)</label><input type="number" id="v-carga" placeholder="0.0" step="0.1" min="0"></div>
+      <div class="form-group full"><label>Observaciones</label><textarea id="v-obs" placeholder="Instrucciones especiales, ruta preferida..."></textarea></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn" onclick="closeModal('modal-viaje')">Cancelar</button>
+      <button class="btn btn-primary" onclick="registrarViaje()">✓ Registrar viaje</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-camion">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Agregar camión</span>
+      <button class="modal-close" onclick="closeModal('modal-camion')">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label>Patente</label><input type="text" id="c-patente" placeholder="ABC-123"></div>
+      <div class="form-group"><label>Marca</label><input type="text" id="c-marca" placeholder="Mercedes, Volvo, Scania..."></div>
+      <div class="form-group"><label>Modelo</label><input type="text" id="c-modelo" placeholder="Actros 2448"></div>
+      <div class="form-group"><label>Año</label><input type="number" id="c-anio" placeholder="2024" min="2000" max="2030"></div>
+      <div class="form-group"><label>Km actuales</label><input type="number" id="c-km" placeholder="0"></div>
+      <div class="form-group"><label>Rev. técnica (mes/año)</label><input type="month" id="c-revtec"></div>
+      <div class="form-group full"><label>Observaciones</label><textarea id="c-obs" placeholder="Capacidad, características especiales..."></textarea></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn" onclick="closeModal('modal-camion')">Cancelar</button>
+      <button class="btn btn-primary" onclick="agregarCamion()">✓ Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-conductor">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Agregar conductor</span>
+      <button class="modal-close" onclick="closeModal('modal-conductor')">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label>Nombre completo</label><input type="text" id="cd-nombre" placeholder="Nombres y apellidos"></div>
+      <div class="form-group"><label>RUT</label><input type="text" id="cd-rut" placeholder="12.345.678-9"></div>
+      <div class="form-group"><label>Clase de licencia</label><select id="cd-lic"><option>A2</option><option>A3</option><option>A4</option></select></div>
+      <div class="form-group"><label>Vencimiento licencia</label><input type="month" id="cd-venc"></div>
+      <div class="form-group"><label>Años de experiencia</label><input type="number" id="cd-exp" min="0" placeholder="0"></div>
+      <div class="form-group"><label>Teléfono</label><input type="text" id="cd-tel" placeholder="+56 9 XXXX XXXX"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn" onclick="closeModal('modal-conductor')">Cancelar</button>
+      <button class="btn btn-primary" onclick="agregarConductor()">✓ Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-mant">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Registrar mantención</span>
+      <button class="modal-close" onclick="closeModal('modal-mant')">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label>Camión</label>
+        <select id="m-camion"><option>PPO-432</option><option>GHK-118</option><option>MNB-204</option><option>RRK-019</option><option>XBT-771</option></select></div>
+      <div class="form-group"><label>Tipo de mantención</label>
+        <select id="m-tipo"><option>Cambio de aceite</option><option>Rev. técnica anual</option><option>Cambio de neumáticos</option><option>Revisión de frenos</option><option>Mantención mayor</option></select></div>
+      <div class="form-group"><label>Fecha programada</label><input type="date" id="m-fecha"></div>
+      <div class="form-group"><label>Km al momento</label><input type="number" id="m-km" placeholder="0"></div>
+      <div class="form-group"><label>Taller / proveedor</label><input type="text" id="m-taller" placeholder="Nombre del taller"></div>
+      <div class="form-group"><label>Costo estimado ($)</label><input type="number" id="m-costo" placeholder="0"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn" onclick="closeModal('modal-mant')">Cancelar</button>
+      <button class="btn btn-primary" onclick="agregarMant()">✓ Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-comb">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Registrar carga de combustible</span>
+      <button class="modal-close" onclick="closeModal('modal-comb')">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label>Camión</label>
+        <select id="cb-camion"><option>PPO-432</option><option>GHK-118</option><option>MNB-204</option><option>RRK-019</option><option>XBT-771</option></select></div>
+      <div class="form-group"><label>Conductor</label>
+        <select id="cb-conductor"><option>Juan Morales</option><option>Carla Vega</option><option>Rodrigo Fuentes</option><option>Pedro Soto</option></select></div>
+      <div class="form-group"><label>Fecha y hora</label><input type="datetime-local" id="cb-fecha"></div>
+      <div class="form-group"><label>Estación de servicio</label><input type="text" id="cb-estacion" placeholder="Ej: Copec Quilpué"></div>
+      <div class="form-group"><label>Litros cargados</label><input type="number" id="cb-litros" placeholder="0" min="0"></div>
+      <div class="form-group"><label>Precio por litro ($)</label><input type="number" id="cb-precio" placeholder="880" min="0"></div>
+      <div class="form-group"><label>Km al momento</label><input type="number" id="cb-km" placeholder="0"></div>
+      <div class="form-group"><label>Tipo de pago</label>
+        <select id="cb-pago"><option>Tarjeta empresa</option><option>Vale combustible</option><option>Efectivo</option></select></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn" onclick="closeModal('modal-comb')">Cancelar</button>
+      <button class="btn btn-primary" onclick="agregarCarga()">✓ Registrar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===================== DATA =====================
+const DB = {
+  viajes: [
+    {id:1,camion:'PPO-432',conductor:'Juan Morales',origen:'Quilpué',destino:'Viña del Mar CD Central',salida:'08:15',eta:'10:30',km:42,carga:2.4,estado:'En ruta',progreso:68},
+    {id:2,camion:'GHK-118',conductor:'Carla Vega',origen:'Quilpué',destino:'Valparaíso Puerto CD Norte',salida:'09:00',eta:'12:45',km:58,carga:1.8,estado:'Retraso',progreso:40},
+    {id:3,camion:'XBT-771',conductor:'Rodrigo Fuentes',origen:'Villa Alemana',destino:'Quilpué',salida:'10:20',eta:'11:05',km:18,carga:0,estado:'Retorno',progreso:88},
+    {id:4,camion:'PPO-432',conductor:'Juan Morales',origen:'Quilpué',destino:'Concón',salida:'06:10',eta:'07:58',km:31,carga:2.4,estado:'Completado',progreso:100},
+    {id:5,camion:'MNB-204',conductor:'Pedro Soto',origen:'Quilpué',destino:'Limache',salida:'07:00',eta:'08:22',km:24,carga:1.8,estado:'Completado',progreso:100},
+    {id:6,camion:'GHK-118',conductor:'Carla Vega',origen:'Viña del Mar',destino:'Quilpué',salida:'06:30',eta:'07:55',km:19,carga:0,estado:'Incidencia',progreso:100},
+    {id:7,camion:'RRK-019',conductor:'Miguel Castro',origen:'Quilpué',destino:'Quilpué Normal',salida:'07:30',eta:'09:10',km:44,carga:3.1,estado:'Completado',progreso:100},
+  ],
+  camiones: [
+    {patente:'PPO-432',marca:'Mercedes',modelo:'Atego 1725',anio:2019,km:148320,revtec:'Oct 2026',estado:'En ruta'},
+    {patente:'GHK-118',marca:'Volvo',modelo:'FH 440',anio:2018,km:212500,revtec:'Jul 2026',estado:'En ruta'},
+    {patente:'XBT-771',marca:'Mercedes',modelo:'Actros 2448',anio:2020,km:98700,revtec:'Ene 2027',estado:'En ruta'},
+    {patente:'MNB-204',marca:'Scania',modelo:'R450',anio:2021,km:74200,revtec:'Mar 2027',estado:'Disponible'},
+    {patente:'RRK-019',marca:'Volvo',modelo:'FM 370',anio:2017,km:287100,revtec:'Jun 2026',estado:'Disponible',alerta:true},
+    {patente:'LKP-553',marca:'Iveco',modelo:'Stralis',anio:2016,km:334800,revtec:'May 2026',estado:'Mantención',alerta:true},
+    {patente:'HHT-902',marca:'Mercedes',modelo:'Atego 1725',anio:2020,km:115400,revtec:'Sep 2026',estado:'Disponible'},
+    {patente:'BNQ-344',marca:'Scania',modelo:'P360',anio:2022,km:45300,revtec:'Feb 2028',estado:'Disponible'},
+    {patente:'TTM-677',marca:'Volvo',modelo:'FH 460',anio:2015,km:412000,revtec:'Abr 2026',estado:'Mantención',alerta:true},
+  ],
+  conductores: [
+    {nombre:'Juan Morales',iniciales:'JM',rut:'12.345.678-9',licencia:'A2',vencLic:'Mar 2027',exp:8,tel:'+56 9 8765 4321',estado:'En ruta',camion:'PPO-432',puntualidad:88,color:'#185fa5',bgColor:'#e6f1fb'},
+    {nombre:'Carla Vega',iniciales:'CV',rut:'13.456.789-0',licencia:'A2',vencLic:'Ago 2026',exp:5,tel:'+56 9 7654 3210',estado:'En ruta',camion:'GHK-118',puntualidad:69,color:'#854f0b',bgColor:'#faeeda'},
+    {nombre:'Rodrigo Fuentes',iniciales:'RF',rut:'14.567.890-1',licencia:'A2',vencLic:'Dic 2026',exp:12,tel:'+56 9 6543 2109',estado:'Retorno',camion:'XBT-771',puntualidad:94,color:'#3c3489',bgColor:'#eeedfe'},
+    {nombre:'Pedro Soto',iniciales:'PS',rut:'15.678.901-2',licencia:'A2',vencLic:'Nov 2027',exp:3,tel:'+56 9 5432 1098',estado:'Disponible',camion:'—',puntualidad:81,color:'#085041',bgColor:'#e1f5ee'},
+    {nombre:'Miguel Castro',iniciales:'MC',rut:'16.789.012-3',licencia:'A2',vencLic:'Jul 2026',exp:6,tel:'+56 9 4321 0987',estado:'Disponible',camion:'RRK-019',puntualidad:74,color:'#a32d2d',bgColor:'#fcebeb',alerta:true},
+  ],
+  mantenimiento: [
+    {camion:'LKP-553',tipo:'Cambio motor · revisión frenos',fecha:'En curso',km:334800,estado:'En taller',costo:1850000},
+    {camion:'TTM-677',tipo:'Revisión técnica + frenos',fecha:'En curso',km:412000,estado:'En taller',costo:920000},
+    {camion:'RRK-019',tipo:'Cambio aceite · filtros',fecha:'15 jun',km:287100,estado:'Próxima',costo:185000},
+    {camion:'GHK-118',tipo:'Rev. técnica anual',fecha:'22 jun',km:212500,estado:'Próxima',costo:120000},
+    {camion:'PPO-432',tipo:'Cambio neumáticos delanteros',fecha:'30 jun',km:148320,estado:'Próxima',costo:480000},
+    {camion:'MNB-204',tipo:'Cambio aceite · filtros',fecha:'14 may',km:73800,estado:'Completada',costo:175000},
+    {camion:'XBT-771',tipo:'Revisión general 100K',fecha:'2 may',km:98000,estado:'Completada',costo:650000},
+  ],
+  cargas: [
+    {fecha:'06 jun',camion:'PPO-432',estacion:'Copec Quilpué',litros:120,precio:880,pago:'Tarjeta empresa'},
+    {fecha:'05 jun',camion:'GHK-118',estacion:'Shell Viña del Mar',litros:150,precio:892,pago:'Vale combustible'},
+    {fecha:'05 jun',camion:'MNB-204',estacion:'Petrobras Quilpué',litros:95,precio:875,pago:'Tarjeta empresa'},
+    {fecha:'04 jun',camion:'XBT-771',estacion:'Copec Quilpué',litros:130,precio:880,pago:'Tarjeta empresa'},
+    {fecha:'04 jun',camion:'RRK-019',estacion:'Terpel V. Alemana',litros:200,precio:868,pago:'Vale combustible'},
+  ],
+  eficiencia: [
+    {camion:'BNQ-344',kmL:3.8},{camion:'MNB-204',kmL:3.5},{camion:'XBT-771',kmL:3.2},
+    {camion:'PPO-432',kmL:3.0},{camion:'GHK-118',kmL:2.6},{camion:'RRK-019',kmL:2.2},{camion:'TTM-677',kmL:1.6}
+  ],
+  alertas: [
+    {tipo:'red',icono:'⚠',titulo:'Rev. técnica vencida · TTM-677',desc:'Venció abr 2026 · En taller actualmente · Debe regularizarse antes de retomar servicio'},
+    {tipo:'red',icono:'🪪',titulo:'Licencia próxima a vencer · Miguel Castro',desc:'Vence jul 2026 · 25 días restantes · Coordinar renovación a la brevedad'},
+    {tipo:'red',icono:'⚠',titulo:'Rev. técnica vencida · LKP-553',desc:'Venció may 2026 · En taller · Incluir en revisión en curso'},
+    {tipo:'amber',icono:'📅',titulo:'Rev. técnica próxima · RRK-019',desc:'Vence jun 2026 · 15 días · Agendar revisión esta semana'},
+    {tipo:'amber',icono:'📅',titulo:'Rev. técnica próxima · GHK-118',desc:'Vence jul 2026 · 22 días · Agendar con anticipación'},
+    {tipo:'blue',icono:'ℹ',titulo:'Licencia a vencer en 60 días · Carla Vega',desc:'Vence ago 2026 · Renovación preventiva recomendada'},
+  ],
+  eventos: [
+    {hora:'11:02',tipo:'green',evento:'XBT-771 — A 2 km del destino',detalle:'Ruta Villa Alemana → Quilpué'},
+    {hora:'10:48',tipo:'amber',evento:'GHK-118 — Retraso detectado',detalle:'Congestión en Av. Independencia, Valparaíso'},
+    {hora:'10:22',tipo:'blue',evento:'PPO-432 — Punto de carga confirmado',detalle:'CD Central · 2,4 t despachadas'},
+    {hora:'09:55',tipo:'green',evento:'MNB-204 — Llegada confirmada',detalle:'Limache · viaje completado'},
+    {hora:'09:00',tipo:'gray',evento:'GHK-118 — Salida desde patio',detalle:'Quilpué → Valparaíso'},
+  ]
+};
+
+// ===================== RENDER =====================
+function estadoBadge(e) {
+  const m = {'En ruta':'badge-blue','Completado':'badge-green','Retraso':'badge-amber','Retorno':'badge-blue','Incidencia':'badge-red','Disponible':'badge-gray','Mantención':'badge-amber','En taller':'badge-amber','Próxima':'badge-blue'};
+  return `<span class="badge ${m[e]||'badge-gray'}">${e}</span>`;
+}
+function fmtNum(n){return n.toLocaleString('es-CL');}
+function fmtMoney(n){return '$'+fmtNum(n);}
+
+function renderDashboard(){
+  // rutas activas mini
+  const activas = DB.viajes.filter(v=>['En ruta','Retraso','Retorno'].includes(v.estado));
+  document.getElementById('dash-rutas-activas').innerHTML = activas.map(v=>{
+    const col = v.estado==='Retraso'?'#ef9f27':v.estado==='Retorno'?'#378add':'#1d9e75';
+    return `<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-weight:600;font-size:13px">${v.camion} · ${v.conductor}</div>
+          <div style="font-size:12px;color:var(--text2)">${v.origen} → ${v.destino}</div>
+        </div>
+        ${estadoBadge(v.estado)}
+      </div>
+      <div class="prog" style="margin-top:6px"><div class="prog-fill" style="width:${v.progreso}%;background:${col}"></div></div>
+    </div>`;
+  }).join('');
+
+  // eficiencia
+  const maxE = 4;
+  document.getElementById('dash-eficiencia').innerHTML = DB.eficiencia.slice(0,5).map(e=>{
+    const col = e.kmL>=3.2?'#1d9e75':e.kmL>=2.5?'#185fa5':'#e24b4a';
+    return `<div class="bar-row"><span class="bar-lbl">${e.camion}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.round(e.kmL/maxE*100)}%;background:${col}"></div></div><span class="bar-val">${e.kmL}</span></div>`;
+  }).join('');
+
+  // rendimiento
+  document.getElementById('dash-rendimiento').innerHTML = DB.conductores.map(c=>{
+    const col = c.puntualidad>=85?'#1d9e75':c.puntualidad>=75?'#185fa5':'#ef9f27';
+    return `<div class="bar-row"><span class="bar-lbl">${c.nombre.split(' ')[0]+' '+c.nombre.split(' ')[1][0]}.</span><div class="bar-track"><div class="bar-fill" style="width:${c.puntualidad}%;background:${col}"></div></div><span class="bar-val">${c.puntualidad}%</span></div>`;
+  }).join('');
+
+  // timeline
+  document.getElementById('dash-timeline').innerHTML = DB.eventos.map(e=>{
+    const cols = {green:'#eaf3de;border-color:#3b6d11',amber:'#faeeda;border-color:#854f0b',blue:'#e6f1fb;border-color:#185fa5',gray:'var(--surface2);border-color:var(--border2)'};
+    return `<div class="tl-item"><div class="tl-dot" style="background:${cols[e.tipo].split(';')[0]};${cols[e.tipo].split(';')[1]}"></div>
+      <div class="tl-time">${e.hora}</div>
+      <div class="tl-event">${e.evento}</div>
+      <div class="tl-detail">${e.detalle}</div></div>`;
+  }).join('');
+}
+
+function renderRutas(){
+  const activas = DB.viajes.filter(v=>['En ruta','Retraso','Retorno'].includes(v.estado));
+  document.getElementById('rutas-activas-list').innerHTML = activas.map(v=>{
+    const col = v.estado==='Retraso'?'#ef9f27':v.estado==='Retorno'?'#378add':'#1d9e75';
+    const dist = v.estado!=='Retorno'?v.km+' km':'18 km';
+    return `<div class="card">
+      <div class="route-card">
+        <div class="route-icon">🚛</div>
+        <div class="route-info">
+          <div class="route-name">${v.camion} · ${v.conductor}</div>
+          <div class="route-meta">${v.origen} → ${v.destino}</div>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:5px">${estadoBadge(v.estado)}<span style="font-size:11px;color:var(--text3)">Sal. ${v.salida} · ETA ${v.eta}</span>${v.carga?`<span style="font-size:11px;color:var(--text3)">${v.carga} t</span>`:''}</div>
+        </div>
+        <div class="route-right"><div style="font-weight:600">${dist}</div></div>
+      </div>
+      <div class="prog" style="margin-top:10px"><div class="prog-fill" style="width:${v.progreso}%;background:${col}"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:4px"><span>${v.progreso}% completado</span><span>${100-v.progreso}% restante</span></div>
+    </div>`;
+  }).join('');
+
+  const completados = DB.viajes.filter(v=>!['En ruta','Retraso','Retorno'].includes(v.estado));
+  document.getElementById('tabla-viajes').innerHTML = `
+    <thead><tr><th>Camión</th><th>Conductor</th><th>Ruta</th><th>Km</th><th>Carga</th><th>Salida</th><th>Estado</th></tr></thead>
+    <tbody>${completados.map(v=>`<tr><td><strong>${v.camion}</strong></td><td>${v.conductor}</td><td>${v.origen} → ${v.destino}</td><td>${v.km}</td><td>${v.carga||'—'} t</td><td>${v.salida}</td><td>${estadoBadge(v.estado)}</td></tr>`).join('')}</tbody>`;
+}
+
+function renderCamiones(filtro='todos'){
+  const lista = filtro==='todos'?DB.camiones:DB.camiones.filter(c=>c.estado===filtro);
+  document.getElementById('flota-sub').textContent = lista.length+' unidades'+(filtro!=='todos'?' (filtradas)':'');
+  document.getElementById('tabla-camiones').innerHTML = `
+    <thead><tr><th>Patente</th><th>Marca / Modelo</th><th>Año</th><th>Km total</th><th>Rev. técnica</th><th>Estado</th></tr></thead>
+    <tbody>${lista.map(c=>`<tr><td><strong>${c.patente}</strong>${c.alerta?'<span class="badge badge-red" style="margin-left:6px;font-size:10px">!</span>':''}</td>
+      <td>${c.marca} ${c.modelo}</td><td>${c.anio}</td><td>${fmtNum(c.km)}</td>
+      <td style="color:${c.alerta?'var(--red)':'var(--green)'}">${c.revtec}</td>
+      <td>${estadoBadge(c.estado)}</td></tr>`).join('')}</tbody>`;
+}
+
+function renderConductores(){
+  document.getElementById('conductores-list').innerHTML = DB.conductores.map(c=>`
+    <div class="card" style="margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="avatar" style="background:${c.bgColor};color:${c.color}">${c.iniciales}</div>
+        <div style="flex:1">
+          <div style="font-weight:600">${c.nombre}${c.alerta?'<span class="badge badge-red" style="margin-left:8px">Alerta lic.</span>':''}</div>
+          <div style="font-size:12px;color:var(--text2)">Lic. ${c.licencia} · Venc. ${c.vencLic} · ${c.exp} años exp. · ${c.tel}</div>
+        </div>
+        <div style="text-align:right">${estadoBadge(c.estado)}<div style="font-size:11px;color:var(--text3);margin-top:3px">${c.camion}</div></div>
+      </div>
+    </div>`).join('');
+  
+  const max = 100;
+  document.getElementById('conductores-bar').innerHTML = DB.conductores.map(c=>{
+    const col = c.puntualidad>=85?'#1d9e75':c.puntualidad>=75?'#185fa5':'#ef9f27';
+    return `<div class="bar-row"><span class="bar-lbl">${c.nombre.split(' ')[0]}</span><div class="bar-track"><div class="bar-fill" style="width:${c.puntualidad}%;background:${col}"></div></div><span class="bar-val">${c.puntualidad}%</span></div>`;
+  }).join('');
+}
+
+function renderMantenimiento(){
+  document.getElementById('tabla-mant').innerHTML = `
+    <thead><tr><th>Camión</th><th>Tipo</th><th>Fecha</th><th>Km</th><th>Estado</th><th>Costo</th></tr></thead>
+    <tbody>${DB.mantenimiento.map(m=>`<tr><td><strong>${m.camion}</strong></td><td>${m.tipo}</td><td>${m.fecha}</td><td>${fmtNum(m.km)}</td><td>${estadoBadge(m.estado)}</td><td>${fmtMoney(m.costo)}</td></tr>`).join('')}</tbody>`;
+}
+
+function renderCombustible(){
+  const maxE = 4;
+  document.getElementById('comb-eficiencia').innerHTML = DB.eficiencia.map(e=>{
+    const col = e.kmL>=3.2?'#1d9e75':e.kmL>=2.5?'#185fa5':'#e24b4a';
+    return `<div class="bar-row"><span class="bar-lbl">${e.camion}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.round(e.kmL/maxE*100)}%;background:${col}"></div></div><span class="bar-val">${e.kmL} km/L</span></div>`;
+  }).join('');
+  document.getElementById('tabla-cargas').innerHTML = `
+    <thead><tr><th>Fecha</th><th>Camión</th><th>Estación</th><th>L</th><th>$/L</th><th>Total</th></tr></thead>
+    <tbody>${DB.cargas.map(c=>`<tr><td>${c.fecha}</td><td>${c.camion}</td><td>${c.estacion}</td><td>${c.litros}</td><td>$${c.precio}</td><td>${fmtMoney(c.litros*c.precio)}</td></tr>`).join('')}</tbody>`;
+}
+
+function renderAlertas(){
+  document.getElementById('alertas-list').innerHTML = DB.alertas.map(a=>`
+    <div class="alert-item alert-${a.tipo}">
+      <span class="alert-icon">${a.icono}</span>
+      <div><div class="alert-title">${a.titulo}</div><div class="alert-desc">${a.desc}</div></div>
+    </div>`).join('');
+}
+
+// ===================== NAVIGATION =====================
+function showPanel(id, el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  el.classList.add('active');
+  const titles = {dashboard:['Dashboard','Vista general de la flota · 06 jun 2026'],rutas:['Rutas y viajes','Control de operaciones del día'],camiones:['Camiones','Registro y estado de la flota'],conductores:['Conductores','Equipo de conductores activos'],mantenimiento:['Mantenimiento','Programa de mantenciones'],combustible:['Combustible','Control de consumo y costos'],alertas:['Alertas','Vencimientos y situaciones críticas']};
+  document.getElementById('page-title').textContent = titles[id][0];
+  document.getElementById('page-sub').textContent = titles[id][1];
+}
+
+function filtrarFlota(filtro, el){
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderCamiones(filtro);
+}
+
+// ===================== MODAL =====================
+function openModal(id){ document.getElementById(id).classList.add('show'); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('show');}));
+
+// ===================== ACCIONES =====================
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2800); }
+
+function registrarViaje(){
+  const v = {
+    id: DB.viajes.length+1,
+    camion: document.getElementById('v-camion').value,
+    conductor: document.getElementById('v-conductor').value,
+    origen: document.getElementById('v-origen').value||'Sin especificar',
+    destino: document.getElementById('v-destino').value||'Sin especificar',
+    salida: document.getElementById('v-hora').value,
+    eta: '--:--', km: 0,
+    carga: parseFloat(document.getElementById('v-carga').value)||0,
+    estado: 'En ruta', progreso: 0
+  };
+  DB.viajes.unshift(v);
+  closeModal('modal-viaje');
+  renderRutas(); renderDashboard();
+  document.getElementById('kpi-activos').textContent = DB.viajes.filter(x=>['En ruta','Retraso','Retorno'].includes(x.estado)).length;
+  toast('Viaje registrado: '+v.camion+' → '+v.destino);
+}
+
+function agregarCamion(){
+  const c = {
+    patente: document.getElementById('c-patente').value.toUpperCase()||'NUEVA',
+    marca: document.getElementById('c-marca').value||'—',
+    modelo: document.getElementById('c-modelo').value||'—',
+    anio: parseInt(document.getElementById('c-anio').value)||2024,
+    km: parseInt(document.getElementById('c-km').value)||0,
+    revtec: document.getElementById('c-revtec').value||'—',
+    estado: 'Disponible'
+  };
+  DB.camiones.push(c);
+  closeModal('modal-camion');
+  renderCamiones();
+  toast('Camión '+c.patente+' agregado a la flota');
+}
+
+function agregarConductor(){
+  const c = {
+    nombre: document.getElementById('cd-nombre').value||'Nuevo Conductor',
+    iniciales: (document.getElementById('cd-nombre').value||'NC').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase(),
+    rut: document.getElementById('cd-rut').value||'—',
+    licencia: document.getElementById('cd-lic').value,
+    vencLic: document.getElementById('cd-venc').value||'—',
+    exp: parseInt(document.getElementById('cd-exp').value)||0,
+    tel: document.getElementById('cd-tel').value||'—',
+    estado: 'Disponible', camion:'—', puntualidad:80,
+    color:'#085041', bgColor:'#e1f5ee'
+  };
+  DB.conductores.push(c);
+  closeModal('modal-conductor');
+  renderConductores();
+  toast('Conductor '+c.nombre+' agregado');
+}
+
+function agregarMant(){
+  const m = {
+    camion: document.getElementById('m-camion').value,
+    tipo: document.getElementById('m-tipo').value,
+    fecha: document.getElementById('m-fecha').value||'Pendiente',
+    km: parseInt(document.getElementById('m-km').value)||0,
+    estado: 'Próxima',
+    costo: parseInt(document.getElementById('m-costo').value)||0
+  };
+  DB.mantenimiento.unshift(m);
+  closeModal('modal-mant');
+  renderMantenimiento();
+  toast('Mantención registrada para '+m.camion);
+}
+
+function agregarCarga(){
+  const c = {
+    fecha: 'Hoy',
+    camion: document.getElementById('cb-camion').value,
+    estacion: document.getElementById('cb-estacion').value||'—',
+    litros: parseInt(document.getElementById('cb-litros').value)||0,
+    precio: parseInt(document.getElementById('cb-precio').value)||880,
+    pago: document.getElementById('cb-pago').value
+  };
+  DB.cargas.unshift(c);
+  closeModal('modal-comb');
+  renderCombustible();
+  toast('Carga registrada: '+c.litros+' L · '+c.camion);
+}
+
+function exportarCSV(){
+  const activas = DB.viajes;
+  const rows = [['Camión','Conductor','Origen','Destino','Salida','ETA','Km','Carga (t)','Estado']];
+  activas.forEach(v=>rows.push([v.camion,v.conductor,v.origen,v.destino,v.salida,v.eta,v.km,v.carga,v.estado]));
+  const csv = rows.map(r=>r.join(';')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download = 'ControlFlota_Viajes_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+  toast('CSV exportado correctamente');
+}
+
+// ===================== INIT =====================
+renderDashboard();
+renderRutas();
+renderCamiones();
+renderConductores();
+renderMantenimiento();
+renderCombustible();
+renderAlertas();
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(r => console.log('SW registrado:', r.scope))
+      .catch(e => console.log('SW error:', e));
+  });
+}
+</script>
+</body>
+</html>
